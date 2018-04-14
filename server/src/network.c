@@ -57,11 +57,46 @@ int create_socket(const char* ip , int port , int domain , int type , int proto 
 
 }
 
-
-void Close_Socket(int fd)
+void close_socket(int fd)
 {
-
-	    shutdown(fd , SHUT_RDWR);
-		    close(fd);
+	shutdown(fd , SHUT_RDWR);
+	close(fd);
 }
 
+Channel* channel_new()
+{
+	Channel* result = (Channel*)malloc(sizeof(Channel));
+	if (unlikely(!result))
+	{
+		printf("[%s:%d]alloc failed：%s" , __FUNCTION__ , __LINE__ , strerror(errno));
+		return NULL;
+	}   
+	else
+		memset(result , 0 , sizeof(Channel));
+	return result;
+}
+
+void free_channel(Channel* ch) 
+{
+	if (ch->fd > -1) 
+	{
+		close_socket(ch->fd);
+		ch->fd  = -1; 
+		ch->tcpConnected = 0;
+	}
+	if (ch->ssl)
+	{
+		SSL_shutdown(ch->ssl);
+		SSL_free(ch->ssl);
+		ch->sslConnected = 0;
+	}
+	free(ch);
+	return ;
+} 
+
+int set_channelsock(Channel* ch , int fd , int events) 
+{
+	ch->fd      = fd; 
+	ch->events  = events;
+	return 0;
+}
