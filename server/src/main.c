@@ -1,5 +1,6 @@
 #include "common.h"
 #include "network.h"
+#include "ssl.h"
 #include <sys/types.h>
 #include <signal.h>
 
@@ -35,8 +36,8 @@ int main()
 {
 	if(geteuid() != 0)
 	{
-		fprintf(stderr,"error!this server must be run as root\n");
-		return 1;
+		fprintf(stderr,"error! this server must be run as root\n");
+		return FAILED;
 	}
 
 	//deal with signal
@@ -46,6 +47,14 @@ int main()
 	signal(26,ignore_handler);
 
 	//create socket
-	//int sockfd =
-	return 0;
+	int sockfd = create_socket(SERVERIP,SERVERPORT,AF_INET, SOCK_STREAM | SOCK_CLOEXEC , IPPROTO_TCP , MAX_SOCKET_CONN , 1);
+	if(sockfd == FAILED){
+		fprintf(stderr,"error! failed to create socket at %s:%d\n",SERVERIP,SERVERPORT);
+		return FAILED;
+	}
+	printf("start listening %s:%d\n",SERVERIP,SERVERPORT);
+	//init ssl
+	int sRet = init_ssl();
+
+	return SUCCESS;
 }

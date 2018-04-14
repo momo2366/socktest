@@ -11,7 +11,14 @@
 #define MINSIZE		16
 
 #define SUCCESS		0
-#define FAILED		1
+#define FAILED		-1
+
+#define SERVERIP	"127.0.0.1"
+#define SERVERPORT	24444
+#define MAX_SOCKET_CONN 20
+#define CACERT		"/usr/share/server/cacert.pem"
+#define SERVER_CERT	"/usr/share/server/sslservercert.pem"
+#define SERVER_PRIVATE_KEY "/usr/share/server/sslserverkey.pem"
 
 #ifndef likely
 #define likely(x)   __builtin_expect(!!(x) , 1)

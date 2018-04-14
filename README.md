@@ -1,1 +1,2 @@
-momo's first sock client and server
+momo's first socket client and server
+just for test
