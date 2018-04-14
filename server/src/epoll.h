@@ -1,5 +1,5 @@
-#ifndef __CCIS_EPOLL_H__
-#define __CCIS_EPOLL_H__
+#ifndef __EPOLL_H__
+#define __EPOLL_H__
 #include "sys/epoll.h"
 #include "network.h"
 

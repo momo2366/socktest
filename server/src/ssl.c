@@ -143,7 +143,7 @@ int Write_Msg(SSL* ssl , const void* buffer , int bufSize)
 	struct itimerval itv;
 	itv.it_interval.tv_sec	= 0;
 	itv.it_interval.tv_usec	= 0;
-	itv.it_value.tv_sec	= 2;			//这里设置两秒，实际上在代码逻辑中只会让其运行一秒
+	itv.it_value.tv_sec	= 2;
 	itv.it_value.tv_usec	= 0;
 
 	int timer		= 0;
