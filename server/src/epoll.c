@@ -2,12 +2,7 @@
 //#include "../global_schedule.h"
 #include <errno.h>
 
-int	Create_Events_Pool();
-int	Register_Events(Channel* ch);
-int	Update_Events(Channel* ch);
-int	Unregister_Events(Channel* ch);
-int	Accept_Events(int timeout_ms);
-void	Destroy_Events_Pool();
+
 
 int create_events_pool()
 {
@@ -52,7 +47,7 @@ int register_events(Channel* ch)
 
 	stEPOLL.clients[stEPOLL.curfd].fd	= ch->fd;
 	stEPOLL.clients[stEPOLL.curfd].events	= ch->events;
-	strcpy(stEPOLL.clients[stEPOLL.curfd].r_ip , ch->r_ip);			//warning   貌似不需要保存？？？
+	strcpy(stEPOLL.clients[stEPOLL.curfd].r_ip , ch->r_ip);
 	stEPOLL.curfd ++;
 
 clean_up:
@@ -70,7 +65,7 @@ int Update_Events(Channel* ch)
 	return retv;
 }
 
-int Unregister_Events(Channel* ch)
+int unregister_events(Channel* ch)
 {
 	if (!ch)
 		return 1;
@@ -100,6 +95,32 @@ clean_up:
 	return retv;
 }
 
+int epoll_read_handle(Channel* ch)
+{
+	if (ch->fd == iSockfd)
+	{
+		Channel* newch  = Channel_New();
+		if(accept_connection(iSockfd , newch))
+		{
+			return -1; 
+		}   
+		return register_events(newch);
+	}   
+	else if (ch->sslConnected)
+	{
+		Msg msg;
+		memset(msg,0,sizeof(Msg));
+		return read_msg((ch->ssl,(char*)&msg,sizeof(Msg));
+	}   
+	if (SSL_HandShake(ch) == 1)
+	{
+		close_socket(ch->fd);
+		unregister_events(ch);
+		return 1;
+	}   
+	return 0;
+}
+
 int accept_events(int timeout_ms)
 {
 	struct epoll_event activeEvs[MAX_EVENTS];
@@ -124,11 +145,12 @@ int accept_events(int timeout_ms)
 		}
 		else if (events & (EPOLLIN | EPOLLERR))
 		{
-			//TODO:read func
+			epoll_read_handle(ch);
 		}
 		else if (events & EPOLLOUT)
 		{
 			//TODO:write func
+			epoll_write_handle(ch);
 		}
 		else
 		{

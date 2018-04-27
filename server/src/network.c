@@ -5,7 +5,7 @@
 #include "network.h"
 #include <errno.h>
 
-int Set_NonBlock(int fd , int flag)
+int set_nonblock(int fd , int flag)
 {
     int prev    = fcntl(fd , F_GETFL);
 	if (prev < 0)
@@ -99,4 +99,39 @@ int set_channelsock(Channel* ch , int fd , int events)
 	ch->fd      = fd; 
 	ch->events  = events;
 	return 0;
+}
+
+
+int accept_connection(int source_fd , Channel* ch)
+{
+	if (!ch)
+	{
+		return 1;
+	}
+	int ret	= 1;
+	struct sockaddr_in raddr;
+	socklen_t raddr_len	= sizeof(raddr);
+	int cfd;
+	while ((cfd = accept4(source_fd , (struct sockaddr*)&raddr , &raddr_len , SOCK_CLOEXEC)) >= 0)
+	{
+		struct sockaddr_in peer;
+		socklen_t alen	= sizeof(peer);
+		int r	= getpeername(cfd , (struct sockaddr*)&peer , &alen);
+		if (unlikely(r < 0))
+		{
+			continue;
+		}
+		inet_ntop(AF_INET , &raddr.sin_addr , ch->r_ip , MINSIZE);
+
+		if (unlikely(stEPOLL.curfd >= MAX_EVENTS))
+		{
+			ret	= 1;
+			break;
+		}
+		Set_NonBlock(cfd , 1);
+		Set_ChannelSock(ch , cfd , EPOLLIN | EPOLLOUT);
+		printf("[ip:%s]Connection Accepted..\n" , ch->r_ip);
+		ret	= 0;
+	}
+	return ret;
 }
